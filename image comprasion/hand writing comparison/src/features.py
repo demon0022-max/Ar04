@@ -5,26 +5,21 @@ from skimage.morphology import skeletonize
 from skimage.transform import rotate
 from skimage.filters import threshold_local
 from skimage.measure import find_contours
-
 def _adaptive_binarize(img):
     T = threshold_local(img, block_size=35, offset=10)
     bin_img = (img > T).astype(np.uint8) * 255
     return bin_img
-
 def _deskew(gray):
-    # Edge + Hough line angle estimate
     edges = cv2.Canny(gray, 50, 150, apertureSize=3)
     lines = cv2.HoughLines(edges, 1, np.pi/180, 120)
     angle = 0.0
     if lines is not None and len(lines) > 0:
-        # Use median angle of detected lines around horizontal
         angs = []
         for rho, theta in lines[:,0,:]:
-            a = (theta - np.pi/2)  # around 0 if near horizontal text lines
+            a = (theta - np.pi/2)  
             angs.append(a)
         angle = np.median(angs) * 180/np.pi
-        angle = np.clip(angle, -10, 10)  # keep reasonable
-    # rotate using skimage to avoid cropping
+        angle = np.clip(angle, -10, 10)  
     rotated = rotate(gray, angle, resize=False, mode='edge', preserve_range=True).astype(np.uint8)
     return rotated, angle
 
@@ -33,22 +28,18 @@ def preprocess(image_bgr, target=256):
         gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
     else:
         gray = image_bgr.copy()
-
-    gray = cv2.medianBlur(gray, 3)
-    deskewed, angle = _deskew(gray)
-    bin_img = _adaptive_binarize(deskewed)
-
-    # center-pad to square, then resize
-    h, w = bin_img.shape
-    side = max(h, w)
-    pad_top = (side - h) // 2
-    pad_bottom = side - h - pad_top
-    pad_left = (side - w) // 2
-    pad_right = side - w - pad_left
-    padded = cv2.copyMakeBorder(bin_img, pad_top, pad_bottom, pad_left, pad_right,
-                                cv2.BORDER_CONSTANT, value=0)
-    resized = cv2.resize(padded, (target, target), interpolation=cv2.INTER_AREA)
-    return resized, {'deskew_angle': angle, 'padded_shape': padded.shape}
+ gray = cv2.medianBlur(gray, 3)
+deskewed, angle = _deskew(gray)
+ bin_img = _adaptive_binarize(deskewed)
+ h, w = bin_img.shape
+ side = max(h, w)
+pad_top = (side - h) // 2
+ pad_bottom = side - h - pad_top
+pad_left = (side - w) // 2
+pad_right = side - w - pad_left
+ padded = cv2.copyMakeBorder(bin_img, pad_top, pad_bottom, pad_left, pad_right,cv2.BORDER_CONSTANT, value=0)
+resized = cv2.resize(padded, (target, target), interpolation=cv2.INTER_AREA)
+return resized, {'deskew_angle': angle, 'padded_shape': padded.shape}
 
 def _lbp_hist(img, P=8, R=1):
     lbp = local_binary_pattern(img, P=P, R=R, method='uniform')
