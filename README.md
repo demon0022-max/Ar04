@@ -19,7 +19,7 @@ handwriting_comparator/
 └── src/
 ├── features.py        
 ├── compare.py         
-└── tiny_cnn.py        
+└── cnn.py        
 
  Using the app
 1. Upload **two** handwriting images (cropped word/line/page all work).
