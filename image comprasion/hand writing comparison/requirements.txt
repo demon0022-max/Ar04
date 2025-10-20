@@ -1,0 +1,7 @@
+streamlit
+opencv-python-headless
+numpy
+scikit-image
+scikit-learn
+Pillow
+torch; platform_system != "Windows" or platform_machine != "arm64"
