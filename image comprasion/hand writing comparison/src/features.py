@@ -14,8 +14,7 @@ def _deskew(gray):
     lines = cv2.HoughLines(edges, 1, np.pi/180, 120)
     angle = 0.0
  if lines is not None and len(lines) > 0:
-        # Use median angle of detected lines around horizontal
-        angs = []
+     angs = []
         for rho, theta in lines[:,0,:]:
   a = (theta - np.pi/2) 
     angs.append(a)
